@@ -36,7 +36,9 @@ def generate_synthetic_dataset(save_path=None):
         "You're not a failure, you're learning and growing.",
         "It's brave of you to share your feelings.",
         "You matter and your life has value.",
-        "There's help available, you don't have to go through this alone."
+        "There's help available, you don't have to go through this alone.",
+        # Simple/positive words
+        "good", "happy", "fine", "okay", "well", "great", "awesome", "fantastic", "excellent", "positive", "hopeful", "calm", "relaxed", "peaceful", "content", "joyful", "cheerful", "smiling", "confident", "motivated", "supported"
     ]
     
     neutral_posts = [
@@ -54,7 +56,9 @@ def generate_synthetic_dataset(save_path=None):
         "Antidepressants can take 4-6 weeks to show full effects.",
         "Exercise releases endorphins which improve mood.",
         "Sleep deprivation can worsen mental health symptoms.",
-        "Social isolation is a risk factor for depression."
+        "Social isolation is a risk factor for depression.",
+        # Simple/neutral words
+        "information", "fact", "data", "statistics", "number", "average", "report", "study", "research", "neutral", "statement", "general", "update", "news", "article", "summary", "overview", "routine", "schedule", "plan", "note"
     ]
     
     distress_posts = [
