@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Sentiment Classifier</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .sentiment-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sentiment-supportive {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .sentiment-neutral {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .sentiment-distress {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .confidence-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 20px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .confidence-supportive {
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+
+        .confidence-neutral {
+            background: linear-gradient(90deg, #17a2b8, #6f42c1);
+        }
+
+        .confidence-distress {
+            background: linear-gradient(90deg, #dc3545, #fd7e14);
+        }
+
+        .probabilities {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .probability-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .probability-label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-transform: capitalize;
+        }
+
+        .probability-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .example-texts {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .example-texts h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .example-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .example-item:hover {
+            background: #e9ecef;
+        }
+
+        .example-text {
+            font-style: italic;
+            color: #666;
+        }
+
+        .example-sentiment {
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .example-sentiment.supportive {
+            color: #28a745;
+        }
+
+        .example-sentiment.neutral {
+            color: #17a2b8;
+        }
+
+        .example-sentiment.distress {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Mental Health Sentiment Classifier</h1>
+            <p>Analyze text to identify supportive, neutral, or distress sentiment in mental health posts</p>
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="text-input">Enter your text:</label>
+                <textarea id="text-input" placeholder="Type or paste your text here..."></textarea>
+            </div>
+            <button class="btn" onclick="analyzeSentiment()">Analyze Sentiment</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing sentiment...</p>
+        </div>
+
+        <div class="error" id="error"></div>
+
+        <div class="result-section" id="result-section">
+            <div class="result-card">
+                <h3>Analysis Results</h3>
+                <div id="sentiment-result"></div>
+                <div id="confidence-result"></div>
+                <div class="probabilities" id="probabilities"></div>
+            </div>
+        </div>
+
+        <div class="example-texts">
+            <h3>Try these examples:</h3>
+            <div class="example-item" onclick="useExample('You\'re doing great! Remember that it\'s okay to take things one step at a time.', 'supportive')">
+                <div class="example-text">"You're doing great! Remember that it's okay to take things one step at a time."</div>
+                <div class="example-sentiment supportive">Supportive</div>
+            </div>
+            <div class="example-item" onclick="useExample('Depression affects approximately 280 million people worldwide.', 'neutral')">
+                <div class="example-text">"Depression affects approximately 280 million people worldwide."</div>
+                <div class="example-sentiment neutral">Neutral</div>
+            </div>
+            <div class="example-item" onclick="useExample('I can\'t take this anymore. Everything feels hopeless and pointless.', 'distress')">
+                <div class="example-text">"I can't take this anymore. Everything feels hopeless and pointless."</div>
+                <div class="example-sentiment distress">Distress</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function analyzeSentiment() {
+            const textInput = document.getElementById('text-input');
+            const text = textInput.value.trim();
+            
+            if (!text) {
+                showError('Please enter some text to analyze.');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result-section').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            
+            // Make API call
+            fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data.error) {
+                    showError(data.error);
+                    return;
+                }
+                
+                displayResults(data);
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                showError('An error occurred while analyzing the text.');
+                console.error('Error:', error);
+            });
+        }
+        
+        function displayResults(data) {
+            const resultSection = document.getElementById('result-section');
+            const sentimentResult = document.getElementById('sentiment-result');
+            const confidenceResult = document.getElementById('confidence-result');
+            const probabilitiesDiv = document.getElementById('probabilities');
+            
+            // Display sentiment
+            const sentimentClass = `sentiment-${data.predicted_sentiment}`;
+            sentimentResult.innerHTML = `
+                <h4>Predicted Sentiment:</h4>
+                <span class="sentiment-badge ${sentimentClass}">${data.predicted_sentiment}</span>
+            `;
+            
+            // Display confidence
+            const confidencePercent = (data.confidence * 100).toFixed(1);
+            const confidenceClass = `confidence-${data.predicted_sentiment}`;
+            confidenceResult.innerHTML = `
+                <h4>Confidence: ${confidencePercent}%</h4>
+                <div class="confidence-bar">
+                    <div class="confidence-fill ${confidenceClass}" style="width: ${confidencePercent}%"></div>
+                </div>
+            `;
+            
+            // Display probabilities
+            probabilitiesDiv.innerHTML = `
+                <div class="probability-item">
+                    <div class="probability-label">Supportive</div>
+                    <div class="probability-value">${(data.probabilities.supportive * 100).toFixed(1)}%</div>
+                </div>
+                <div class="probability-item">
+                    <div class="probability-label">Neutral</div>
+                    <div class="probability-value">${(data.probabilities.neutral * 100).toFixed(1)}%</div>
+                </div>
+                <div class="probability-item">
+                    <div class="probability-label">Distress</div>
+                    <div class="probability-value">${(data.probabilities.distress * 100).toFixed(1)}%</div>
+                </div>
+            `;
+            
+            resultSection.style.display = 'block';
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        function useExample(text, sentiment) {
+            document.getElementById('text-input').value = text;
+            analyzeSentiment();
+        }
+        
+        // Allow Enter key to submit
+        document.getElementById('text-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                analyzeSentiment();
+            }
+        });
+    </script>
+</body>
+</html> 
